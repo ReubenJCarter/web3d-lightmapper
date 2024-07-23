@@ -46,7 +46,7 @@ export default class LightMapper{
 		}
 	};
 
-	async Run(app, firebaseHelper, builderid, spaceData, floorData, wallData, objectData, sampleCount, lightData, progressChanged, deNoiseTrainMode=false, denoiserInputSamples=50){
+	async Run(app, objectData, sampleCount, lightData, progressChanged, deNoiseTrainMode=false, denoiserInputSamples=50){
 		
 		//clear the cancel 
 		this.cancel = false;
@@ -228,21 +228,6 @@ export default class LightMapper{
 			iCount += indicies.length;
 		}
  
-	
-		for (var [key, floor] of floorData){
-			let internalTexture =  floor.mesh.material && floor.mesh.material.albedoTexture ? floor.mesh.material.albedoTexture : null;
-			let avTexCol = await AvTexCol(internalTexture); 
-			
-            addMeshToBlob(floor.mesh, key, 'floor', '{}', floor.material.color, internalTexture, avTexCol);
-        }
-
-		for (var [key, wall] of wallData){ 
-			let internalTexture =  wall.mesh.material && wall.mesh.material.albedoTexture ? wall.mesh.material.albedoTexture : null; 
-			let avTexCol = await AvTexCol(internalTexture);
-			
-            addMeshToBlob(wall.mesh, key, 'wall', '{}', wall.material.color, internalTexture, avTexCol); 
-        } 
-
 		for (var [key, obj] of objectData){
 			if(obj.model){
 				let meshes = obj.model.rootNodes[0].getChildMeshes();
@@ -372,7 +357,7 @@ export default class LightMapper{
 		//if we are building a denoising training data set, generate final clean output map and normal and postion map 
 		if(deNoiseTrainMode){
 			addFunctionToChain(()=>{
-				console.log("Rendering Training cllean image to Canvas");
+				console.log("Rendering Training clean image to Canvas");
 				this.wasmLightMapper.AverageSamplesAndRenderToCanvas();
 				imageData = this.canvas.toDataURL("image/png");
 				
