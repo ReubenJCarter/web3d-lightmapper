@@ -348,7 +348,7 @@ export default class LightMapper {
 			//if getting denoising training data take a snapshot at correct frame!
 			if(deNoiseTrainMode && i == denoiserInputSamples-1){
 				addFunctionToChain(()=>{
-					console.log("Rendering Training cllean image to Canvas");
+					console.log("Rendering Training clean image to Canvas");
 					this.wasmLightMapper.AverageSamplesAndRenderToCanvas();
 					imageData = this.canvas.toDataURL("image/png");
 					

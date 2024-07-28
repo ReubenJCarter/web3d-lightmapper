@@ -16,11 +16,12 @@ function Log(str, type='message'){
     let el = document.getElementById("console"); 
     consoleText += '<span style="color:'+col+'; ">' + str + '</span>' + '<br>'; 
     el.innerHTML = consoleText; 
+    el.scrollTop = el.scrollHeight;
 }
 
 window.onload = ()=>{
 
-    console.log('Tests Starting'); 
+    Log('Tests Starting'); 
     
     //Scene
     const canvas = document.getElementById("main-canvas");
@@ -87,7 +88,6 @@ window.onload = ()=>{
     Log('Running Light Mapper');
   
     lightMapper.run(scene, [ground, box0, box1, box2], 2048, 2048, 500, lightData, (progress)=>{
-        console.log(progress);
         Log(`${Math.round(progress*100)}% Complete`);
     }).then((lmData)=>{
 
