@@ -34,7 +34,7 @@ window.onload = ()=>{
     camera.attachControl(canvas, true);
 
     //Light 
-    var light = new HemisphericLight("light1", new Vector3(-0.5, 1.0, -0.5), scene);
+    var light = new HemisphericLight("light1", new Vector3(-1, 1.0, -1), scene);
     light.intensity = 1;
 
     //box
@@ -66,10 +66,10 @@ window.onload = ()=>{
     let lightMapper = new LightMapper(); 
     let lightData = {
         main:{
-            direction:new Vector3(0.5, -1.0, 0.5), 
-            color:new Color3(1, 1, 1), 
+            direction: light.direction.scale(-1), 
+            color: new Color3(1, 1, 1), 
             power: 0.14,
-            radius:0.2, 
+            radius: 0.2, 
         }, 
         ambient: {
             skyColor: new Color3(1, 1, 1), 
@@ -87,9 +87,11 @@ window.onload = ()=>{
 
     Log('Running Light Mapper');
   
-    lightMapper.run(scene, [ground, box0, box1, box2], 2048, 2048, 500, lightData, (progress)=>{
+    lightMapper.run(scene, [ground, box0, box1, box2], 2048, 2048, 500, lightData,{
+        gaussFilterCount:10,
+    }, (progress)=>{
         Log(`${Math.round(progress*100)}% Complete`);
-    }).then((lmData)=>{
+    }, ).then((lmData)=>{
 
         Log(`Light Map Done`);
         console.log(lmData); 
@@ -120,6 +122,7 @@ window.onload = ()=>{
                 material.useLightmapAsShadowmap = true; 
                 material.lightmapTexture = new Texture(lmData.lightMap, scene, true); 
                 material.diffuseColor = Color3.FromHexString(mat); 
+                material.specularColor = Color3.Black(); 
                 bakedSceneMesh.material = material;
             }
         }

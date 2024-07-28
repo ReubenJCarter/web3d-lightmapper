@@ -104,9 +104,13 @@ export default class LightMapper {
 		}
 	};
 
-	async run(scene, meshes, mapWidth, mapHeight, sampleCount, lightData, progressChanged, denoiserInputSamples=50){
+	async run(scene, meshes, mapWidth, mapHeight, sampleCount, lightData,
+		filterSettings={gaussFilterCount:0, medianFilterCount:0, edgeAwareFilterCount:0,}, 
+		progressChanged
+	){
 
 		let deNoiseTrainMode = false; 
+		let denoiserInputSamples = 50; 
 		
 		//clear the cancel 
 		this.cancel = false;
@@ -282,9 +286,9 @@ export default class LightMapper {
 		let framesPerRender = 1;
 		let dillateCount = 20; 
 
-		let gaussFilterCount = 0;
-		let edgeAwareFilterCount = 0;
-		let medianFilterCount = 0; 
+		let gaussFilterCount = filterSettings.gaussFilterCount;
+		let edgeAwareFilterCount = filterSettings.edgeAwareFilterCount;
+		let medianFilterCount = filterSettings.medianFilterCount; 
 
 
 		let averageFrameRenderTime = 0;
@@ -348,7 +352,7 @@ export default class LightMapper {
 			//if getting denoising training data take a snapshot at correct frame!
 			if(deNoiseTrainMode && i == denoiserInputSamples-1){
 				addFunctionToChain(()=>{
-					console.log("Rendering Training clean image to Canvas");
+					console.log("Rendering Training cllean image to Canvas");
 					this.wasmLightMapper.AverageSamplesAndRenderToCanvas();
 					imageData = this.canvas.toDataURL("image/png");
 					
