@@ -2,6 +2,68 @@ import LightMapperWASM from './lightmapperWasm.mjs';
 
 import { Color3, VertexBuffer, Scene, FreeCamera, Camera, MeshBuilder, Vector3, StandardMaterial, Tools } from "@babylonjs/core";
 
+
+//Attaches to a scene, creates a new independent scene with the same engine, and uses it to render any texture, then reduces to 1 px so a color
+class TexAvColSystem {
+
+	constructor(scene, ) {
+
+		// get the average color of a texture 
+		this.engine = scene.getEngine();
+		this.avTexColScene = new Scene(this.engine);
+		this.avTexColCam = new FreeCamera("avTexColCam", new Vector3(0, 0, -10), this.avTexColScene);
+    	this.avTexColCam.mode = Camera.ORTHOGRAPHIC_CAMERA;
+		this.avTexColCam.orthoTop = 1;
+		this.avTexColCam.orthoBottom = -1;
+    	this.avTexColCam.orthoLeft = -1;
+    	this.avTexColCam.orthoRight = 1;
+		this.avTexColMesh = MeshBuilder.CreatePlane("avTexColMesh",{size:2}, this.avTexColScene);
+		this.avTexColMesh.material = new StandardMaterial("avTexColMeshMat", this.avTexColScene); 
+		this.avTexColMesh.material.emissiveColor = new Color3(0, 0, 0); 
+		this.avTexColMesh.material.diffuseColor = new Color3(0, 0, 0); 
+		this.avTexColMesh.material.specularColor = new Color3(0, 0, 0); 
+		this.avTexColMesh.material.ambientColor = new Color3(0, 0, 0); 
+		this.avTexColMesh.material.backFaceCulling = false; 
+		this.avTexColScene.render();
+
+		this.avTexCanvas = document.createElement('canvas');
+		this.avTexCanvas.width = 1;
+		this.avTexCanvas.height = 1;
+	}
+
+	run(texture) {
+		if(!texture)
+			return '#FFFFFF';
+
+		
+		this.avTexColMesh.material.emissiveTexture = texture; 
+		this.avTexColScene.render();
+		this.avTexColScene.render();
+		return Tools.CreateScreenshotUsingRenderTargetAsync(this.engine, this.avTexColCam, 32)
+		.then((imgd)=>{
+			let img = new Image();
+			return new Promise((resolve, reject)=>{ 
+				img.onload= ()=>{
+					let ctx = this.avTexCanvas.getContext('2d');
+					ctx.drawImage(img, 0, 0, 1, 1);
+					let c = ctx.getImageData(0, 0, 1, 1).data; 
+					let col = new Color3(c[0] / 255, c[1] / 255, c[2] / 255); 
+					let hex = col.toHexString(); 
+					resolve(hex);
+				}
+				img.onerror = ()=>{
+					reject({message:'failed to load image'}); 
+				}
+				img.src = imgd;
+			}); 
+		});
+	}
+
+	destroy(){
+		this.avTexColScene.dispose(); 
+	}
+}
+
 /*
 Compute lighting uvs for each mesh 
 Combine and generate BVHs for all meshes
@@ -17,14 +79,10 @@ Denoiser runs on accumulator texture
 
 */
 
-export default class LightMapper{
+export default class LightMapper {
 	constructor(){
-		
-
 		this.cancel = false;
 		this.progress = 0.0; 
-
-		
 	}
 
 	async loadWasm(){  
@@ -46,7 +104,9 @@ export default class LightMapper{
 		}
 	};
 
-	async Run(app, objectData, sampleCount, lightData, progressChanged, deNoiseTrainMode=false, denoiserInputSamples=50){
+	async run(scene, meshes, mapWidth, mapHeight, sampleCount, lightData, progressChanged, denoiserInputSamples=50){
+
+		let deNoiseTrainMode = false; 
 		
 		//clear the cancel 
 		this.cancel = false;
@@ -54,8 +114,8 @@ export default class LightMapper{
 
 		//Create canvas and context
 		let canvas = document.createElement('canvas');
-		canvas.width = 2048;
-		canvas.height = 2048;
+		canvas.width = mapWidth;
+		canvas.height = mapHeight;
 		canvas.id = 'lmglCanvas';
 		const context = canvas.getContext("webgl2");  
 		this.canvas = canvas;    
@@ -114,56 +174,8 @@ export default class LightMapper{
 
 		let internalTextureUIDs = []; 
 
-
-		// get the average color of a texture 
-		let engine = app.scene.getEngine();
-		let avTexColScene = new Scene(engine);
-		let avTexColCam = new FreeCamera("avTexColCam", new Vector3(0, 0, -10), avTexColScene);
-    	avTexColCam.mode = Camera.ORTHOGRAPHIC_CAMERA;
-		avTexColCam.orthoTop = 1;
-		avTexColCam.orthoBottom = -1;
-    	avTexColCam.orthoLeft = -1;
-    	avTexColCam.orthoRight = 1;
-		let avTexColMesh = MeshBuilder.CreatePlane("avTexColMesh",{size:2}, avTexColScene);
-		avTexColMesh.material = new StandardMaterial("avTexColMeshMat", avTexColScene); 
-		avTexColMesh.material.emissiveColor = new Color3(0, 0, 0); 
-		avTexColMesh.material.diffuseColor = new Color3(0, 0, 0); 
-		avTexColMesh.material.specularColor = new Color3(0, 0, 0); 
-		avTexColMesh.material.ambientColor = new Color3(0, 0, 0); 
-		avTexColMesh.material.backFaceCulling = false; 
-		avTexColScene.render();
-
-		let avTexCanvas = document.createElement('canvas');
-		avTexCanvas.width = 1;
-		avTexCanvas.height = 1;
-
-		let AvTexCol = (texture) => {
-			if(!texture)
-				return '#FFFFFF';
-
-			
-			avTexColMesh.material.emissiveTexture = texture; 
-			avTexColScene.render();avTexColScene.render();
-			return Tools.CreateScreenshotUsingRenderTargetAsync(engine, avTexColCam, 32)
-			.then((imgd)=>{
-				let img = new Image();
-				return new Promise((resolve, reject)=>{ 
-					img.onload= ()=>{
-						let ctx = avTexCanvas.getContext('2d');
-						ctx.drawImage(img, 0, 0, 1, 1);
-						let c = ctx.getImageData(0, 0, 1, 1).data; 
-						let col = new Color3(c[0] / 255, c[1] / 255, c[2] / 255); 
-						let hex = col.toHexString(); 
-						console.log(hex);
-						resolve(hex);
-					}
-					img.onerror = ()=>{
-						reject({message:'failed to load image'}); 
-					}
-					img.src = imgd;
-				}); 
-			});
-		}
+		// create system to get the average color of a texture 
+		let texAvColSystem = new TexAvColSystem(scene); 
 
 		//Function to add a mesh to the scene data
 		let addMeshToBlob = (mesh, uid, type, meshMetaData, meshColor='', internalTexture=null,  meshAvTextureColor='') =>{
@@ -228,32 +240,29 @@ export default class LightMapper{
 			iCount += indicies.length;
 		}
  
-		for (var [key, obj] of objectData){
-			if(obj.model){
-				let meshes = obj.model.rootNodes[0].getChildMeshes();
-				for(let mesh of meshes){
+	
+		for(let mesh of meshes){
 
-					if(mesh.metadata && mesh.metadata.dontInclude)
-						continue; 
+			if(mesh.metadata && mesh.metadata.dontInclude)
+				continue; 
 
-					let col = mesh.material && mesh.material.albedoColor ? mesh.material.albedoColor : Color3.White;
-					let colStr = col.toHexString();  
-					let internalTexture =  mesh.material && mesh.material.albedoTexture ? mesh.material.albedoTexture : null; 
-					let avTexCol = await AvTexCol(internalTexture);
-					
-					let metaData = {}; 
-					if(mesh.metadata && mesh.metadata.unique)
-						metaData.unique = true;
-					if(mesh.metadata && mesh.metadata.invisible)
-						metaData.invisible = true; 
-					addMeshToBlob(mesh, key, 'object', JSON.stringify(metaData), colStr, internalTexture, avTexCol); 
-				}; 
-			}
-        }; 
+			let col = mesh.material && mesh.material.diffuseColor ? mesh.material.diffuseColor : Color3.White();
+			let colStr = col.toHexString();  
+			let internalTexture =  mesh.material && mesh.material.diffuseTexture ? mesh.material.diffuseTexture : null; 
+			let avTexCol = await texAvColSystem.run(internalTexture);
+			
+			let metaData = {}; 
+			if(mesh.metadata && mesh.metadata.unique)
+				metaData.unique = true;
+			if(mesh.metadata && mesh.metadata.invisible)
+				metaData.invisible = true; 
+			addMeshToBlob(mesh, 'static_scene_data', 'object', JSON.stringify(metaData), colStr, internalTexture, avTexCol); 
+		}; 
+			
 
 		//dispose of the scene used to create average texture colors 
-		avTexColScene.dispose(); 
- 
+		texAvColSystem.destroy(); 
+
 		//zero geometry present 
 		if(vecI.size() == 0){ 
 
@@ -519,7 +528,7 @@ export default class LightMapper{
 			let grouspsMetaData = new Map(); 
 
 			//
-			//Add each mesh in the combined mesh data to a group TODO also split the interactables into their own groups
+			//Add each mesh in the combined mesh data to a group
 			for(let m = 0; m < combinedSceneData.meshes.length / 4; m++){
 				let ituid = internalTextureUIDs[m]; 
 
@@ -617,6 +626,9 @@ export default class LightMapper{
 
 			})
 			.then(()=>{
+				imageData = this.canvas.toDataURL("image/jpeg");//convert the rendered lightmap canvas to a jpg image and return it
+			})
+			.then(()=>{
 
 				//Cleanup
 				this.canvas.remove(); 
@@ -625,7 +637,7 @@ export default class LightMapper{
 				this.wasmLightMapper.delete();  
 
 
-				return imageData; 
+				return {sceneData, lightMap:imageData}; 
 			}); 
 		}) 
 

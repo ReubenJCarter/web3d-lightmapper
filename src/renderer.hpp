@@ -1539,7 +1539,7 @@ public:
 
         //set per sample uniform setting in shader 
         glUniform1i( glGetUniformLocation(renderProgram, "maxBounces"), maxBounces);  
-        glUniform1i( glGetUniformLocation(renderProgram, "triangleCount"), triangleCount);
+        //glUniform1i( glGetUniformLocation(renderProgram, "triangleCount"), triangleCount);//only for brute force algo
         glUniform1i( glGetUniformLocation(renderProgram, "bvhNodeCount"), bvhNodeCount); 
         glUniform1i( glGetUniformLocation(renderProgram, "texBufferWidth"), texBufferWidth); 
         glUniform1i( glGetUniformLocation(renderProgram, "frameBufferWidth"), frameBufferTextureWidth); 

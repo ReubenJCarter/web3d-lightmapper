@@ -4,31 +4,33 @@
     "description": "Bake GI light maps in the browser for web 3d projects.",
     "main": "index.js",
     "scripts": {
-      "test": "cd test && webpack serve --open --config webpack.config.js",
-      "installemsdk": "git clone https://github.com/emscripten-core/emsdk.git",
-      "useemsdkWin":"cd emsdk && emsdk install latest && emsdk activate latest && cd ../",
-      "useemsdk":"cd emsdk && ./emsdk install latest && ./emsdk activate latest && source ./emsdk_env.sh && cd ../",
-      "build": "./build.sh", 
-      "buildprod": "./build.sh prod",
-      "buildWin": "build.sh"
+        "test": "cd test && webpack serve --open --config webpack.config.js",
+        "installemsdk": "git clone https://github.com/emscripten-core/emsdk.git",
+        "useemsdkWin": "cd emsdk && emsdk install latest && emsdk activate latest && cd ../",
+        "useemsdk": "cd emsdk && ./emsdk install latest && ./emsdk activate latest && source ./emsdk_env.sh && cd ../",
+        "build": "./build.sh",
+        "buildprod": "./build.sh prod",
+        "buildWin": "build.sh",
+        "buildjs": "node build.js"
     },
     "keywords": [
-      "webGL",
-      "3D",
-      "graphics", 
-      "lightmapper", 
-      "babylonjs"
+        "webGL",
+        "3D",
+        "graphics",
+        "lightmapper",
+        "babylonjs"
     ],
     "author": "Reuben Carter",
     "devDependencies": {
-      "@babel/core": "^7.17.8",
-      "@babel/preset-env": "^7.16.11",
-      "babel-loader": "^8.2.4",
-      "cpy-cli": "^4.1.0",
-      "del-cli": "^4.0.1",
-      "html-webpack-plugin": "^5.5.0",
-      "webpack": "^5.70.0",
-      "webpack-cli": "^4.9.2",
-      "webpack-dev-server": "^4.7.4"
+        "@babel/core": "^7.17.8",
+        "@babel/preset-env": "^7.16.11",
+        "@babylonjs/core": "^7.17.2",
+        "babel-loader": "^8.2.4",
+        "cpy-cli": "^4.1.0",
+        "del-cli": "^4.0.1",
+        "html-webpack-plugin": "^5.5.0",
+        "webpack": "^5.70.0",
+        "webpack-cli": "^4.9.2",
+        "webpack-dev-server": "^4.7.4"
     }
-  }
+}
