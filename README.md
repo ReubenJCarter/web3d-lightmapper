@@ -7,6 +7,11 @@ Obligatory Cornell Box
   <img width="800" src="https://raw.githubusercontent.com/ReubenJCarter/web3d-lightmapper/master/pictures/corenllbox.jpg"/>
 </p>
 
+Lightmap of Cornell Box
+<p align="center">
+  <img width="800" src="https://raw.githubusercontent.com/ReubenJCarter/web3d-lightmapper/master/pictures/cornellbox-lightmap.jpg"/>
+</p>
+
 This is currently a work in progress, there are many issues and much I still need to add.
 
 The project makes use of the following libraries; 
