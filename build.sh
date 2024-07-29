@@ -24,26 +24,14 @@ do
 
     echo building "${fileName}.o"
 
-    #get all dependancies for this obj file 
-    depStr=$(emcc $i -MM -I ./src/thirdparty)
-
-    echo calculated deps
-
-    #split string into array of file names, remove any that are invalid 
-    IFS=', ' read -r -a deps <<< "$depStr"
-    
-    shouldBuild=true
-    
-    if [ "$shouldBuild" = true ] 
+    echo building...
+    if [ "$1" == "prod" ]
     then
-        echo building...
-        if [ "$1" == "prod" ]
-        then
-            emcc -c -std=c++17 -O3 -o ./wasmdist/obj/$fileName.o -I ./src/thirdparty $i &
-        else
-            emcc -c -std=c++17 -g -gsource-map -o ./wasmdist/obj/$fileName.o -I ./src/thirdparty $i &
-        fi
+        emcc -c -std=c++17 -O3 -o ./wasmdist/obj/$fileName.o -I ./src/thirdparty $i &
+    else
+        emcc -c -std=c++17 -g -gsource-map -o ./wasmdist/obj/$fileName.o -I ./src/thirdparty $i &
     fi
+
 done
 
 wait 
