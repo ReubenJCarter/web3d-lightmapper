@@ -3,11 +3,12 @@ import { Scene } from "@babylonjs/core/scene";
 import { Color3, Vector3 } from "@babylonjs/core/Maths/math";
 import { FreeCamera } from "@babylonjs/core/Cameras/freeCamera";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
-import { Mesh, MeshBuilder, StandardMaterial, Texture, VertexData } from "@babylonjs/core";
+import { DirectionalLight, Light, Mesh, MeshBuilder, SceneLoader, StandardMaterial, Texture, VertexData } from "@babylonjs/core";
 
 import "@babylonjs/core/Materials/standardMaterial";
+import "@babylonjs/loaders/glTF";
 
-import LightMapper from "./build/lightmapperBabylon";
+import { LightMapper, addBakedMeshesToScene } from "..";
 
 let consoleText = ``; 
 function Log(str, type='message'){
@@ -19,7 +20,7 @@ function Log(str, type='message'){
     el.scrollTop = el.scrollHeight;
 }
 
-window.onload = ()=>{
+window.onload = async ()=>{
 
     Log('Tests Starting'); 
     
@@ -29,14 +30,21 @@ window.onload = ()=>{
     var scene = new Scene(engine);
 
     //Camera
-    var camera = new FreeCamera("camera1", new Vector3(0, 5, -10), scene);
-    camera.setTarget(Vector3.Zero());
+    var camera = new FreeCamera("camera1", new Vector3(0, 1, 3.5), scene);
+    camera.setTarget(new Vector3(0, 1, 0));
     camera.attachControl(canvas, true);
 
     //Light 
-    var light = new HemisphericLight("light1", new Vector3(-1, 1.0, -1), scene);
+    var light = new DirectionalLight("light1", new Vector3(0, -1, -1), scene);
     light.intensity = 1;
+    const ambientLight = new HemisphericLight("HemiLight", new Vector3(0, 1, 0), scene);
 
+    
+
+    //Cornell 
+    await SceneLoader.ImportMeshAsync('', './models/', 'scene.gltf', scene); 
+
+/*
     //box
     let box0 = MeshBuilder.CreateBox('box0', {size:1}, scene)
     box0.position.y = 1; 
@@ -62,32 +70,38 @@ window.onload = ()=>{
 
     //Ground
     let ground = MeshBuilder.CreateGround("ground1", {width:6, height:6, subdivisions:2}, scene);
+*/
+    //Run light mapper
+    engine.runRenderLoop(() => {
+        scene.render();
+    });
 
+
+    //Light mapper settings
     let lightMapper = new LightMapper(); 
     let lightData = {
         main:{
             direction: light.direction.scale(-1), 
             color: new Color3(1, 1, 1), 
-            power: 0.14,
+            power: 0.2,
             radius: 0.2, 
         }, 
         ambient: {
             skyColor: new Color3(1, 1, 1), 
-            skyIntensity: 0.36, 
+            skyIntensity: 0.5, 
             groundColor: new Color3(1, 1, 1), 
             groundIntensity: 0.2,
         }, 
     }
-    
-
-    //Run
-    engine.runRenderLoop(() => {
-        scene.render();
-    });
 
     Log('Running Light Mapper');
+
+    let allMeshes = []; 
+    for(let mesh of scene.meshes){
+        allMeshes.push(mesh); 
+    }
   
-    lightMapper.run(scene, [ground, box0, box1, box2], 2048, 2048, 500, lightData,{
+    lightMapper.run(scene, allMeshes, 2048, 2048, 500, 3, lightData, {
         gaussFilterCount:10,
     }, (progress)=>{
         Log(`${Math.round(progress*100)}% Complete`);
@@ -95,45 +109,15 @@ window.onload = ()=>{
 
         Log(`Light Map Done`);
         console.log(lmData); 
-        //Go over each mesh group and create  a new mesh for it
-        for(let i = 0; i < lmData.sceneData.length; i++){
-            let bakedData = lmData.sceneData[i]; 
 
-            for(let m = 0; m < bakedData.meshes.length / 4; m++){
-                let iOff = bakedData.meshes[m * 4 + 0]
-                let iCount = bakedData.meshes[m * 4 + 1]; 
-                let vOff = bakedData.meshes[m * 4 + 2];
-                let vCount = bakedData.meshes[m * 4 + 3];
-                let mat = bakedData.materials[m*2+0]; 
+        addBakedMeshesToScene(lmData, scene); 
 
-                let bakedSceneMesh = new Mesh("bakedSceneMesh_"+i, scene);
-                let vertexData = new VertexData(); 
-
-                //update vertex data and make mesh 
-                vertexData.colors = bakedData.colors.slice(4 * vOff, 4 * (vOff+vCount)); 
-                vertexData.positions = bakedData.positions.slice(3 * vOff, 3 * (vOff+vCount));
-                vertexData.normals  = bakedData.normals.slice(3 * vOff, 3 * (vOff+vCount));
-                vertexData.uvs = bakedData.lmuvs.slice(2 * vOff, 2 * (vOff+vCount));
-                vertexData.uvs2 = bakedData.lmuvs.slice(2 * vOff, 2 * (vOff+vCount));
-                vertexData.indices = bakedData.indices.slice(iOff, iOff + iCount).map(inx=>inx-vOff);
-                vertexData.applyToMesh(bakedSceneMesh); 
-
-                let material = new StandardMaterial(scene); 
-                material.useLightmapAsShadowmap = true; 
-                material.lightmapTexture = new Texture(lmData.lightMap, scene, true); 
-                material.diffuseColor = Color3.FromHexString(mat); 
-                material.specularColor = Color3.Black(); 
-                bakedSceneMesh.material = material;
-            }
+        for(let oldMesh of allMeshes){
+            oldMesh.isVisible = false; 
         }
 
-        ground.isVisible = false; 
-        box0.isVisible = false; 
-        box1.isVisible = false; 
-        box2.isVisible = false; 
-        
-        //scene.removeLight(light);
-
+        light.lightmapMode = Light.LIGHTMAP_SPECULAR;
+        ambientLight.lightmapMode = Light.LIGHTMAP_SPECULAR; 
     }); 
 
     

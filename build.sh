@@ -32,18 +32,7 @@ do
     #split string into array of file names, remove any that are invalid 
     IFS=', ' read -r -a deps <<< "$depStr"
     
-
-    #test the time stamp on each file including cpp against tiimestamp of obj file, if any are newer, rebuild 
-    shouldBuild=false
-    # for depfile in "${deps[@]}"
-    # do
-    #     if [ ./${depfile} -nt ./wasmdist/obj/${fileName}.o ]
-    #         then
-    #             shouldBuild=true
-    #             echo $depfile NEWER
-    #     fi
-    # done
-      shouldBuild=true
+    shouldBuild=true
     
     if [ "$shouldBuild" = true ] 
     then
@@ -74,8 +63,6 @@ mkdir -p ./test/build/
 cp ./wasmdist/lightmapperWasm.wasm ./test/build/
 cp ./wasmdist/lightmapperWasm.wasm.map ./test/build/
 cp ./wasmdist/lightmapperWasm.mjs ./test/build/
-cp ./src/lightmapperBabylon.js ./wasmdist/
-cp ./wasmdist/lightmapperBabylon.js ./test/build/
 
 #copy test models to build folder
 mkdir -p ./test/build/models

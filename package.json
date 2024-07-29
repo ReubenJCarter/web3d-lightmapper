@@ -25,6 +25,7 @@
         "@babel/core": "^7.17.8",
         "@babel/preset-env": "^7.16.11",
         "@babylonjs/core": "^7.17.2",
+        "@babylonjs/loaders": "^7.17.2",
         "babel-loader": "^8.2.4",
         "cpy-cli": "^4.1.0",
         "del-cli": "^4.0.1",
