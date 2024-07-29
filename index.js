@@ -109,7 +109,7 @@ class LightMapper {
 		progressChanged
 	){
 
-		let deNoiseTrainMode = true; 
+		let deNoiseTrainMode = false; 
 		let denoiserInputSamples = 50; 
 		
 		//clear the cancel 
