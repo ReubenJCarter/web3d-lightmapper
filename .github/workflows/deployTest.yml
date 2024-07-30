@@ -39,14 +39,19 @@ jobs:
           npm run webpacktestbuild
       
       # Create Page Artifact 
-      - name: Upload artifact
-        id: upload-artifact
-        uses: actions/upload-artifact@v1
+      # - name: Upload artifact
+      #   id: upload-artifact
+      #   uses: actions/upload-artifact@v1
+      #   with:
+      #     name: github-pages
+      #     path: test/build/
+      #     retention-days: 1
+      #     if-no-files-found: error
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v1
         with:
-          name: github-pages
           path: test/build/
-          retention-days: 1
-          if-no-files-found: error
 
   deploy:
     # Add a dependency to the build job
