@@ -49,7 +49,10 @@ fi
 echo copy test files...
 mkdir -p ./test/build/
 cp ./wasmdist/lightmapperWasm.wasm ./test/build/
-cp ./wasmdist/lightmapperWasm.wasm.map ./test/build/
+if [ "$1" != "prod" ]
+then
+    cp ./wasmdist/lightmapperWasm.wasm.map ./test/build/
+fi
 cp ./wasmdist/lightmapperWasm.mjs ./test/build/
 
 #copy test models to build folder
