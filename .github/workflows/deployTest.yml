@@ -40,8 +40,8 @@ jobs:
       
       # Create Page Artifact 
       - name: Upload artifact
-        id: upload-artifact
-        uses: actions/upload-artifact@v4
+        id: upload-pages-artifact
+        uses: actions/upload-pages-artifact@v4
         with:
           name: github-pages
           path: test/build/
