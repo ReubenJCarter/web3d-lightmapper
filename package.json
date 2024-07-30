@@ -7,7 +7,7 @@
         "test": "cd test && webpack serve --open --config webpack.config.js",
         "installemsdk": "git clone https://github.com/emscripten-core/emsdk.git",
         "useemsdkWin": "cd emsdk && emsdk install latest && emsdk activate latest && cd ../",
-        "useemsdk": "cd emsdk && ./emsdk install latest && ./emsdk activate latest && source ./emsdk_env.sh && cd ../",
+        "useemsdk": "cd emsdk && ./emsdk install latest && ./emsdk activate latest && . ./emsdk_env.sh && cd ../",
         "build": "./build.sh",
         "buildprod": "./build.sh prod",
         "buildWin": "build.sh",
