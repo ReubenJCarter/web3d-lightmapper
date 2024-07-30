@@ -46,7 +46,7 @@ else
 fi
 
 #copy wasm file to test build folder 
-echo copy test files...
+echo copy wasm module to test folder...
 mkdir -p ./test/build/
 cp ./wasmdist/lightmapperWasm.wasm ./test/build/
 if [ "$1" != "prod" ]
@@ -56,8 +56,6 @@ fi
 cp ./wasmdist/lightmapperWasm.mjs ./test/build/
 
 #copy test models to build folder
+echo copy model files to test folder...
 mkdir -p ./test/build/models
 cp -r ./test/models/* ./test/build/models 
-
-
-read -p "PRESS ANY KEY..."
